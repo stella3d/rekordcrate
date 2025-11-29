@@ -1126,11 +1126,13 @@ pub struct TrackStrings {
     #[brw(args(base, ()))]
     #[br(parse_with = offsets.read_offset(1))]
     #[bw(write_with = offsets.write_offset(1))]
+    #[serde(skip_serializing_if = "DeviceSQLString::is_empty")]
     isrc: DeviceSQLString,
     /// Lyricist of the track.
     #[brw(args(base, ()))]
     #[br(parse_with = offsets.read_offset(2))]
     #[bw(write_with = offsets.write_offset(2))]
+    #[serde(skip_serializing_if = "DeviceSQLString::is_empty")]
     lyricist: DeviceSQLString,
     /// Unknown string field containing a number.
     /// Appears to increment when the track is exported or modified in Rekordbox.
@@ -1155,6 +1157,7 @@ pub struct TrackStrings {
     #[brw(args(base, ()))]
     #[br(parse_with = offsets.read_offset(6))]
     #[bw(write_with = offsets.write_offset(6))]
+    #[serde(skip_serializing_if = "DeviceSQLString::is_empty")]
     message: DeviceSQLString,
     /// "Publish track information" in Rekordbox, value is either "ON" or empty string.
     /// Appears related to the Stagehand product to control DJ equipment remotely.
@@ -1193,6 +1196,7 @@ pub struct TrackStrings {
     #[brw(args(base, ()))]
     #[br(parse_with = offsets.read_offset(13))]
     #[bw(write_with = offsets.write_offset(13))]
+    #[serde(skip_serializing_if = "DeviceSQLString::is_empty")]
     mix_name: DeviceSQLString,
     /// Unknown string field (usually empty).
     #[brw(args(base, ()))]
@@ -1214,6 +1218,7 @@ pub struct TrackStrings {
     #[brw(args(base, ()))]
     #[br(parse_with = offsets.read_offset(17))]
     #[bw(write_with = offsets.write_offset(17))]
+    #[serde(skip_serializing_if = "DeviceSQLString::is_empty")]
     comment: DeviceSQLString,
     /// Track title.
     #[brw(args(base, ()))]
