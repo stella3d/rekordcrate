@@ -1232,7 +1232,7 @@ pub struct Track {
     /// Appears to be the same for all tracks in a given DB.
     unknown4: u16,
     /// Artwork row ID for the cover art (non-zero if set),
-    artwork_id: ArtworkId,
+    pub artwork_id: ArtworkId,
     /// Key row ID for the cover art (non-zero if set).
     key_id: KeyId,
     /// Artist row ID of the original performer (non-zero if set).
@@ -1246,15 +1246,15 @@ pub struct Track {
     /// Track number of the track.
     track_number: u32,
     /// Track tempo in centi-BPM (= 1/100 BPM).
-    tempo: u32,
+    pub tempo: u32,
     /// Genre row ID for this track (non-zero if set).
-    genre_id: GenreId,
+    pub genre_id: GenreId,
     /// Album row ID for this track (non-zero if set).
-    album_id: AlbumId,
+    pub album_id: AlbumId,
     /// Artist row ID for this track (non-zero if set).
-    artist_id: ArtistId,
+    pub artist_id: ArtistId,
     /// Row ID of this track (non-zero if set).
-    id: TrackId,
+    pub id: TrackId,
     /// Disc number of this track (non-zero if set).
     disc_number: u16,
     /// Number of times this track was played.
@@ -1264,7 +1264,7 @@ pub struct Track {
     /// Bits per sample of the track aduio file.
     sample_depth: u16,
     /// Playback duration of this track in seconds (at normal speed).
-    duration: u16,
+    pub duration: u16,
     /// Unknown field, apparently always "0x29".
     unknown5: u16,
     /// Color row ID for this track (non-zero if set).
