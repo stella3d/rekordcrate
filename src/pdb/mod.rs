@@ -1137,16 +1137,19 @@ pub struct TrackStrings {
     #[brw(args(base, ()))]
     #[br(parse_with = offsets.read_offset(3))]
     #[bw(write_with = offsets.write_offset(3))]
+    #[serde(skip_serializing_if = "DeviceSQLString::is_empty")]
     unknown_string2: DeviceSQLString,
     /// Unknown string field containing a number.
     #[brw(args(base, ()))]
     #[br(parse_with = offsets.read_offset(4))]
     #[bw(write_with = offsets.write_offset(4))]
+    #[serde(skip_serializing_if = "DeviceSQLString::is_empty")]
     unknown_string3: DeviceSQLString,
     /// Unknown string field.
     #[brw(args(base, ()))]
     #[br(parse_with = offsets.read_offset(5))]
     #[bw(write_with = offsets.write_offset(5))]
+    #[serde(skip_serializing_if = "DeviceSQLString::is_empty")]
     unknown_string4: DeviceSQLString,
     /// Track "message", a field in the Rekordbox UI.
     #[brw(args(base, ()))]
@@ -1168,11 +1171,13 @@ pub struct TrackStrings {
     #[brw(args(base, ()))]
     #[br(parse_with = offsets.read_offset(9))]
     #[bw(write_with = offsets.write_offset(9))]
+    #[serde(skip_serializing_if = "DeviceSQLString::is_empty")]
     unknown_string5: DeviceSQLString,
     /// Unknown string field (usually empty).
     #[brw(args(base, ()))]
     #[br(parse_with = offsets.read_offset(10))]
     #[bw(write_with = offsets.write_offset(10))]
+    #[serde(skip_serializing_if = "DeviceSQLString::is_empty")]
     unknown_string6: DeviceSQLString,
     /// Date when the track was added to the Rekordbox collection (YYYY-MM-DD).
     #[brw(args(base, ()))]
@@ -1193,6 +1198,7 @@ pub struct TrackStrings {
     #[brw(args(base, ()))]
     #[br(parse_with = offsets.read_offset(14))]
     #[bw(write_with = offsets.write_offset(14))]
+    #[serde(skip_serializing_if = "DeviceSQLString::is_empty")]
     unknown_string7: DeviceSQLString,
     /// File path of the track analysis file.
     #[brw(args(base, ()))]
@@ -1218,6 +1224,7 @@ pub struct TrackStrings {
     #[brw(args(base, ()))]
     #[br(parse_with = offsets.read_offset(19))]
     #[bw(write_with = offsets.write_offset(19))]
+    #[serde(skip_serializing_if = "DeviceSQLString::is_empty")]
     unknown_string8: DeviceSQLString,
     /// Name of the file.
     #[brw(args(base, ()))]

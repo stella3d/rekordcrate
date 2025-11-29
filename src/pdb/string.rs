@@ -135,6 +135,14 @@ impl DeviceSQLString {
             content: Vec::new(),
         })
     }
+
+    /// Check whether the [`DeviceSQLString`] is empty.
+    pub fn is_empty(&self) -> bool {
+        matches!(
+            &self.0,
+            DeviceSQLStringImpl::ShortASCII { content, .. } if content.is_empty()
+        )
+    }
 }
 
 impl fmt::Debug for DeviceSQLString {
