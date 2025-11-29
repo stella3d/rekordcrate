@@ -1155,7 +1155,7 @@ pub struct TrackStrings {
     #[brw(args(base, ()))]
     #[br(parse_with = offsets.read_offset(12))]
     #[bw(write_with = offsets.write_offset(12))]
-    release_date: DeviceSQLString,
+    pub release_date: DeviceSQLString,
     /// Name of the remix (if any).
     #[brw(args(base, ()))]
     #[br(parse_with = offsets.read_offset(13))]
@@ -1170,7 +1170,7 @@ pub struct TrackStrings {
     #[brw(args(base, ()))]
     #[br(parse_with = offsets.read_offset(15))]
     #[bw(write_with = offsets.write_offset(15))]
-    analyze_path: DeviceSQLString,
+    pub analyze_path: DeviceSQLString,
     /// Date when the track analysis was performed (YYYY-MM-DD).
     #[brw(args(base, ()))]
     #[br(parse_with = offsets.read_offset(16))]
@@ -1200,7 +1200,7 @@ pub struct TrackStrings {
     #[brw(args(base, ()))]
     #[br(parse_with = offsets.read_offset(21))]
     #[bw(write_with = offsets.write_offset(21))]
-    file_path: DeviceSQLString,
+    pub file_path: DeviceSQLString,
 }
 
 /// Contains the album name, along with an ID of the corresponding artist.
