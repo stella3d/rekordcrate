@@ -865,7 +865,7 @@ pub struct TrailingName {
     #[br(parse_with = offsets.read_offset(1))]
     #[bw(write_with = offsets.write_offset(1))]
     /// The name a the end of the row this is used in
-    name: DeviceSQLString,
+    pub name: DeviceSQLString,
 }
 
 /// Contains the album name, along with an ID of the corresponding artist.
