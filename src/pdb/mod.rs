@@ -972,9 +972,9 @@ pub struct Color {
 #[brw(little)]
 pub struct Genre {
     /// ID of this row.
-    id: GenreId,
+    pub id: GenreId,
     /// Name of the genre.
-    name: DeviceSQLString,
+    pub name: DeviceSQLString,
 }
 
 /// Represents a history playlist.
@@ -1007,11 +1007,11 @@ pub struct HistoryEntry {
 #[brw(little)]
 pub struct Key {
     /// ID of this row.
-    id: KeyId,
+    pub id: KeyId,
     /// Apparently a second copy of the row ID.
     id2: u32,
     /// Name of the key.
-    name: DeviceSQLString,
+    pub name: DeviceSQLString,
 }
 
 /// Represents a record label.
