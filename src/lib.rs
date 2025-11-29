@@ -30,5 +30,57 @@ pub mod util;
 pub mod xml;
 pub(crate) mod xor;
 
+use binrw::{BinRead};
+
+/// Reads all data rows from a PDB file and exposes them through an iterator.
+pub fn iter_pdb_rows(path: &PathBuf, typ: DatabaseType) -> Result<PdbRowIter> {
+    let mut reader = std::fs::File::open(path)?;
+    let header = Header::read_args(&mut reader, (typ,))?;
+
+    let mut rows = Vec::new();
+    for table in &header.tables {
+        for page in header.read_pages(
+            &mut reader,
+            binrw::Endian::NATIVE,
+            (&table.first_page, &table.last_page, typ),
+        )? {
+            if let PageContent::Data(data_content) = page.content {
+                for row_group in data_content.row_groups {
+                    rows.extend(row_group.present_rows().iter().cloned());
+                }
+            }
+        }
+    }
+
+    Ok(PdbRowIter { rows, cursor: 0 })
+}
+
+/// Iterator over raw rows extracted from a PDB file.
+#[derive(Debug)]
+pub struct PdbRowIter {
+    rows: Vec<Row>,
+    cursor: usize,
+}
+
+impl Iterator for PdbRowIter {
+    type Item = Row;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.cursor < self.rows.len() {
+            let row = self.rows[self.cursor].clone();
+            self.cursor += 1;
+            Some(row)
+        } else {
+            None
+        }
+    }
+}
+
+use std::path::PathBuf;
+
+use crate::pdb::{DatabaseType, PageContent};
+use crate::pdb::Header;
+use crate::pdb::Row;
 pub use crate::util::RekordcrateError as Error;
 pub use crate::util::RekordcrateResult as Result;
+
