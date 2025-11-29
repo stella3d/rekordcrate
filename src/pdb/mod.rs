@@ -1234,7 +1234,7 @@ pub struct Track {
     /// Artwork row ID for the cover art (non-zero if set),
     pub artwork_id: ArtworkId,
     /// Key row ID for the cover art (non-zero if set).
-    key_id: KeyId,
+    pub key_id: KeyId,
     /// Artist row ID of the original performer (non-zero if set).
     orig_artist_id: ArtistId,
     /// Label row ID of the original performer (non-zero if set).
@@ -1260,7 +1260,7 @@ pub struct Track {
     /// Number of times this track was played.
     play_count: u16,
     /// Year this track was released.
-    year: u16,
+    pub year: u16,
     /// Bits per sample of the track aduio file.
     sample_depth: u16,
     /// Playback duration of this track in seconds (at normal speed).
@@ -1274,7 +1274,7 @@ pub struct Track {
     /// Format of the file.
     file_type: FileType,
     #[brw(args(0x5C, subtype.get_offset_size(), ()))]
-    offsets: OffsetArrayContainer<TrackStrings, 22>,
+    pub offsets: OffsetArrayContainer<TrackStrings, 22>,
     // Track paddings in general seem to follow this odd formula.
     // A similar oddity is the case with other rows employing an OffsetArray
     // (though with different padding_base)
