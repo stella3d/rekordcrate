@@ -1150,7 +1150,7 @@ pub struct TrackStrings {
     #[brw(args(base, ()))]
     #[br(parse_with = offsets.read_offset(11))]
     #[bw(write_with = offsets.write_offset(11))]
-    date_added: DeviceSQLString,
+    pub date_added: DeviceSQLString,
     /// Date when the track was released (YYYY-MM-DD).
     #[brw(args(base, ()))]
     #[br(parse_with = offsets.read_offset(12))]
@@ -1185,7 +1185,7 @@ pub struct TrackStrings {
     #[brw(args(base, ()))]
     #[br(parse_with = offsets.read_offset(18))]
     #[bw(write_with = offsets.write_offset(18))]
-    title: DeviceSQLString,
+    pub title: DeviceSQLString,
     /// Unknown string field (usually empty).
     #[brw(args(base, ()))]
     #[br(parse_with = offsets.read_offset(19))]
