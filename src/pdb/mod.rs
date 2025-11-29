@@ -906,10 +906,10 @@ pub struct Artist {
     /// for each subsequent entry in that page.
     index_shift: u16,
     /// ID of this row.
-    id: ArtistId,
+    pub id: ArtistId,
     /// offsets at the row end
     #[brw(args(8, subtype.get_offset_size(), ()))]
-    offsets: OffsetArrayContainer<TrailingName, 2>,
+    pub offsets: OffsetArrayContainer<TrailingName, 2>,
     /// Explicit padding, used to align rows in a page (manually)
     #[br(args(0x30))]
     padding: ExplicitPadding,
