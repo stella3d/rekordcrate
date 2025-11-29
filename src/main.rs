@@ -9,9 +9,12 @@
 use binrw::BinRead;
 use clap::{Parser, Subcommand};
 use rekordcrate::anlz::ANLZ;
-use rekordcrate::pdb::{DatabaseType, Header, PageContent, PageType, PlainPageType, PlainRow, Row};
+use rekordcrate::pdb::{
+    DatabaseType, Header, Page, PageContent, PageType, PlainPageType, PlainRow, Row,
+};
 use rekordcrate::setting::Setting;
 use rekordcrate::xml::Document;
+use serde_json::{json, Value};
 use std::path::{Path, PathBuf};
 
 #[derive(Parser)]
@@ -44,6 +47,9 @@ enum Commands {
         /// Database type: "plain" (export.pdb) or "ext" (exportExt.pdb). Tries to guess based on file name of not specified.
         #[arg(long, value_name = "DB_TYPE", value_parser = ["plain", "ext"])]
         db_type: Option<String>,
+        /// Output the parsed data as JSON instead of the human-readable dump.
+        #[arg(long)]
+        json: bool,
     },
     /// Parse and dump a Pioneer Settings (`*SETTING.DAT`) file.
     DumpSetting {
@@ -137,45 +143,84 @@ fn dump_anlz(path: &PathBuf) -> rekordcrate::Result<()> {
     Ok(())
 }
 
-fn dump_pdb(path: &PathBuf, typ: DatabaseType) -> rekordcrate::Result<()> {
+fn dump_pdb(path: &PathBuf, typ: DatabaseType, output_json: bool) -> rekordcrate::Result<()> {
     let mut reader = std::fs::File::open(path)?;
     let header = Header::read_args(&mut reader, (typ,))?;
 
-    println!("{:#?}", header);
+    if output_json {
+        let tables_json = header
+            .tables
+            .iter()
+            .enumerate()
+            .map(|(index, table)| {
+                let pages = header.read_pages(
+                    &mut reader,
+                    binrw::Endian::NATIVE,
+                    (&table.first_page, &table.last_page, typ),
+                )?;
 
-    for (i, table) in header.tables.iter().enumerate() {
-        println!("Table {}: {:?}", i, table.page_type);
-        for page in header
-            .read_pages(
-                &mut reader,
-                binrw::Endian::NATIVE,
-                (&table.first_page, &table.last_page, typ),
-            )
-            .unwrap()
-            .into_iter()
-        {
-            println!("  {:?}", page);
-            match page.content {
-                PageContent::Data(data_content) => {
-                    data_content.row_groups.iter().for_each(|row_group| {
-                        println!("    {:?}", row_group);
-                        for row in row_group.present_rows() {
-                            println!("      {:?}", row);
-                        }
-                    })
-                }
-                PageContent::Index(index_content) => {
-                    println!("    {:?}", index_content);
-                    for entry in index_content.entries {
-                        println!("      {:?}", entry);
+                let pages_json: Vec<Value> = pages
+                    .into_iter()
+                    .map(page_to_json)
+                    .collect::<rekordcrate::Result<_>>()?;
+
+                Ok::<serde_json::Value, rekordcrate::Error>(json!({
+                    "index": index,
+                    "table": table,
+                    "pages": pages_json,
+                }))
+            })
+            .collect::<Result<Vec<_>, _>>()?;
+
+        let output = json!({
+            "header": {
+                "page_size": header.page_size,
+                "sequence": header.sequence,
+                "tables": tables_json,
+            }
+        });
+        serde_json::to_writer_pretty(std::io::stdout(), &output)?;
+        println!();
+    } else {
+        println!("{:#?}", header);
+
+        for (i, table) in header.tables.iter().enumerate() {
+            println!("Table {}: {:?}", i, table.page_type);
+            for page in header
+                .read_pages(
+                    &mut reader,
+                    binrw::Endian::NATIVE,
+                    (&table.first_page, &table.last_page, typ),
+                )?
+                .into_iter()
+            {
+                println!("  {:?}", page);
+                match page.content {
+                    PageContent::Data(data_content) => {
+                        data_content.row_groups.iter().for_each(|row_group| {
+                            println!("    {:?}", row_group);
+                            for row in row_group.present_rows() {
+                                println!("      {:?}", row);
+                            }
+                        })
                     }
+                    PageContent::Index(index_content) => {
+                        println!("    {:?}", index_content);
+                        for entry in index_content.entries {
+                            println!("      {:?}", entry);
+                        }
+                    }
+                    PageContent::Unknown => (),
                 }
-                PageContent::Unknown => (),
             }
         }
     }
 
     Ok(())
+}
+
+fn page_to_json(page: Page) -> rekordcrate::Result<Value> {
+    serde_json::to_value(page).map_err(Into::into)
 }
 
 fn dump_setting(path: &PathBuf) -> rekordcrate::Result<()> {
@@ -236,12 +281,16 @@ fn main() -> rekordcrate::Result<()> {
 
     match &cli.command {
         Commands::ListPlaylists { path } => list_playlists(path),
-        Commands::DumpPDB { path, db_type } => {
+        Commands::DumpPDB {
+            path,
+            db_type,
+            json,
+        } => {
             let db_type = match guess_db_type(path, db_type.as_deref()) {
                 Some(db_type) => db_type,
                 None => return Ok(()), // TODO(Swiftb0y): turn into proper error;
             };
-            dump_pdb(path, db_type)
+            dump_pdb(path, db_type, *json)
         }
         Commands::DumpANLZ { path } => dump_anlz(path),
         Commands::DumpSetting { path } => dump_setting(path),

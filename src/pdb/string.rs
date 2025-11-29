@@ -12,6 +12,8 @@
 //! See <https://djl-analysis.deepsymmetry.org/rekordbox-export-analysis/exports.html#devicesql-strings>
 
 use binrw::binrw;
+use serde::ser::{Error as SerError, Serializer};
+use serde::Serialize;
 use std::{convert::TryInto, fmt, str::FromStr};
 use thiserror::Error;
 
@@ -142,6 +144,19 @@ impl fmt::Debug for DeviceSQLString {
             .into_string()
             .unwrap_or_else(|_| "<string error>".to_string());
         fmt.debug_tuple("DeviceSQLString").field(&value).finish()
+    }
+}
+
+impl Serialize for DeviceSQLString {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let value = self
+            .clone()
+            .into_string()
+            .map_err(|err| SerError::custom(err.to_string()))?;
+        serializer.serialize_str(&value)
     }
 }
 /// support `"somestr".parse()`.

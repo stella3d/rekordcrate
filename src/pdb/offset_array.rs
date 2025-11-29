@@ -44,9 +44,11 @@
 //! ```
 
 use binrw::{binrw, io::SeekFrom, BinRead, BinResult, BinWrite};
+use serde::ser::Serializer;
+use serde::Serialize;
 
 /// Specifies whether the offsets are stored as u8 or u16.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 pub enum OffsetSize {
     /// Offsets are stored as u8.
     U8,
@@ -91,7 +93,7 @@ pub enum OffsetSize {
 ///     inner: SingleTarget(42u8),
 /// };
 /// ```
-#[derive(Debug, PartialEq, Clone, Eq)]
+#[derive(Debug, PartialEq, Clone, Eq, Serialize)]
 pub struct OffsetArrayContainer<T, const N: usize> {
     /// The offsets, either u8 or u16.
     pub offsets: OffsetArray<N>,
@@ -283,6 +285,22 @@ impl<const N: usize> From<[u8; N]> for OffsetArray<N> {
 impl<const N: usize> From<[u16; N]> for OffsetArray<N> {
     fn from(arr: [u16; N]) -> Self {
         Self::U16(arr)
+    }
+}
+
+impl<const N: usize> Serialize for OffsetArray<N> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        match self {
+            OffsetArray::U8(values) => {
+                serializer.serialize_newtype_variant("OffsetArray", 0, "U8", &values[..])
+            }
+            OffsetArray::U16(values) => {
+                serializer.serialize_newtype_variant("OffsetArray", 1, "U16", &values[..])
+            }
+        }
     }
 }
 

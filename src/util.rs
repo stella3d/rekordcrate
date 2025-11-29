@@ -10,6 +10,8 @@
 
 use crate::pdb::string::StringError;
 use binrw::binrw;
+use serde::Serialize;
+use serde_json;
 use thiserror::Error;
 
 /// Enumerates errors returned by this library.
@@ -27,6 +29,10 @@ pub enum RekordcrateError {
     /// Represents an `std::io::Error`.
     #[error(transparent)]
     IOError(#[from] std::io::Error),
+
+    /// Represents a failure to serialize or deserialize via Serde JSON.
+    #[error(transparent)]
+    SerdeJsonError(#[from] serde_json::Error),
 }
 
 /// Type alias for results where the error is a `RekordcrateError`.
@@ -34,7 +40,7 @@ pub type RekordcrateResult<T> = std::result::Result<T, RekordcrateError>;
 
 /// Indexed Color identifiers used for memory cues and tracks.
 #[binrw]
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize)]
 pub enum ColorIndex {
     /// No color.
     #[brw(magic = 0u8)]
@@ -67,7 +73,7 @@ pub enum ColorIndex {
 
 /// Track file type.
 #[binrw]
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize)]
 pub enum FileType {
     /// Unknown file type.
     #[brw(magic = 0x0u16)]
@@ -110,7 +116,7 @@ pub const fn align_by(alignment: u64, mut offset: u64) -> u64 {
 }
 
 #[binrw(little)]
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default, Serialize)]
 #[br(import(limit: usize))]
 /// Represents explicit padding bytes in a binary structure.
 pub struct ExplicitPadding(

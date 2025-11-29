@@ -23,6 +23,7 @@ pub mod offset_array;
 pub mod string;
 
 use offset_array::OffsetArrayContainer;
+use serde::Serialize;
 
 #[cfg(test)]
 mod test;
@@ -62,7 +63,7 @@ fn current_offset<R: Read + Seek>(reader: &mut R, _: Endian, _: ()) -> BinResult
 
 /// The type of the database were looking at.
 /// This influences the meaning of the the pagetypes found in tables.
-#[derive(Debug, PartialEq, Eq, Clone, Copy, Default)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Default, Serialize)]
 pub enum DatabaseType {
     #[default] // use plain by default for use of migration
     /// Standard export.pdb files.
@@ -73,7 +74,7 @@ pub enum DatabaseType {
 
 /// The type of pages found inside a `Table`.
 #[binrw]
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize)]
 #[brw(little)]
 #[brw(import(db_type: DatabaseType))]
 pub enum PageType {
@@ -89,7 +90,7 @@ pub enum PageType {
 
 /// The type of pages found inside a `Table` of export.pdb files.
 #[binrw]
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize)]
 #[brw(little)]
 pub enum PlainPageType {
     /// Holds rows of track metadata, such as title, artist, genre, artwork ID, playing time, etc.
@@ -141,7 +142,7 @@ pub enum PlainPageType {
 /// Points to a table page and can be used to calculate the page's file offset by multiplying it
 /// with the page size (found in the file header).
 #[binrw]
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd)]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Serialize)]
 #[brw(little)]
 pub struct PageIndex(u32);
 
@@ -168,7 +169,7 @@ impl PageIndex {
 /// Tables are linked lists of pages containing rows of a single type, which are organized
 /// into groups.
 #[binrw]
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize)]
 #[brw(little)]
 #[brw(import(db_type: DatabaseType))]
 pub struct Table {
@@ -190,7 +191,7 @@ pub struct Table {
 
 /// The PDB header structure, including the list of tables.
 #[binrw]
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize)]
 #[brw(little)]
 #[brw(import(db_type: DatabaseType))]
 pub struct Header {
@@ -250,7 +251,7 @@ impl Header {
 }
 
 #[binrw]
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize)]
 struct PageFlags(u8);
 
 impl PageFlags {
@@ -267,7 +268,7 @@ impl PageFlags {
 
 /// An entry in an index page.
 #[binrw]
-#[derive(PartialEq, Eq, Clone, Copy)]
+#[derive(PartialEq, Eq, Clone, Copy, Serialize)]
 #[brw(little)]
 pub struct IndexEntry(u32);
 
@@ -328,7 +329,7 @@ impl fmt::Debug for IndexEntry {
 
 /// The content of an index page.
 #[binread]
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize)]
 #[br(little)]
 pub struct IndexPageContent {
     /// Unknown field, usually `0x1fff` or `0x0001`.
@@ -422,7 +423,7 @@ impl BinWrite for IndexPageContent {
 
 /// The content of a page, which can be of different types.
 #[binrw]
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize)]
 #[br(little, import { page_flags: PageFlags, page_start_pos: u64, page_size: u32, num_rows_small: u8, page_type: PageType })]
 #[bw(little, import { page_flags: PageFlags, page_size: u32, num_rows_small: u8, page_type: PageType })]
 pub enum PageContent {
@@ -466,7 +467,7 @@ impl PageContent {
 /// followed by the data section that holds the row data. Each row needs to be located using an
 /// offset found in the page footer at the end of the page.
 #[binrw]
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize)]
 #[brw(little, import(page_size: u32, db_type: DatabaseType))]
 pub struct Page {
     /// Stream position at the beginning of the page; used to compute heap base for standalone buffers.
@@ -533,7 +534,7 @@ pub struct Page {
 
 /// The data-containing part of a page.
 #[binread]
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize)]
 #[br(little, import { page_start_pos: u64, page_size: u32, num_rows_small: u8, page_type: PageType })]
 pub struct DataPageContent {
     /// Unknown field.
@@ -644,7 +645,7 @@ impl Page {
 /// table.
 #[binread]
 #[br(import(page_type: PageType, page_heap_position: u64))]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct RowGroup {
     /// An offset which points to a row in the table, whose actual presence is controlled by one of the
     /// bits in `row_present_flags`. This instance allows the row itself to be lazily loaded, unless it
@@ -782,7 +783,7 @@ impl RowGroup {
 
 /// Carries additional information about a row (if present, always as the first field of a row)
 #[binrw]
-#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash, Serialize)]
 #[brw(little)]
 pub struct Subtype(pub u16);
 
@@ -803,62 +804,62 @@ impl Subtype {
 
 /// Identifies a track.
 #[binrw]
-#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash, Serialize)]
 #[brw(little)]
 pub struct TrackId(pub u32);
 
 /// Identifies an artwork item.
 #[binrw]
-#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash, Serialize)]
 #[brw(little)]
 pub struct ArtworkId(pub u32);
 
 /// Identifies an album.
 #[binrw]
-#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash, Serialize)]
 #[brw(little)]
 pub struct AlbumId(pub u32);
 
 /// Identifies an artist.
 #[binrw]
-#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash, Serialize)]
 #[brw(little)]
 pub struct ArtistId(pub u32);
 
 /// Identifies a genre.
 #[binrw]
-#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash, Serialize)]
 #[brw(little)]
 pub struct GenreId(pub u32);
 
 /// Identifies a key.
 #[binrw]
-#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash, Serialize)]
 #[brw(little)]
 pub struct KeyId(pub u32);
 
 /// Identifies a label.
 #[binrw]
-#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash, Serialize)]
 #[brw(little)]
 pub struct LabelId(pub u32);
 
 /// Identifies a playlist tree node.
 #[binrw]
-#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash, Serialize)]
 #[brw(little)]
 pub struct PlaylistTreeNodeId(pub u32);
 
 /// Identifies a history playlist.
 #[binrw]
-#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash, Serialize)]
 #[brw(little)]
 pub struct HistoryPlaylistId(pub u32);
 
 #[binrw]
 #[brw(little)]
 #[brw(import(base: i64, offsets: &OffsetArray<2>, args: ()))]
-#[derive(Debug, PartialEq, Clone, Eq)]
+#[derive(Debug, PartialEq, Clone, Eq, Serialize)]
 /// Represents a trailing name field at the end of a row, used for album and artist names.
 pub struct TrailingName {
     #[brw(args(base, args))]
@@ -870,7 +871,7 @@ pub struct TrailingName {
 
 /// Contains the album name, along with an ID of the corresponding artist.
 #[binrw]
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize)]
 #[brw(little)]
 pub struct Album {
     /// Unknown field, usually `80 00`.
@@ -896,7 +897,7 @@ pub struct Album {
 
 /// Contains the artist name and ID.
 #[binrw]
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize)]
 #[brw(little)]
 pub struct Artist {
     /// Determines if the `name` string is located at the 8-bit offset (0x60) or the 16-bit offset (0x64).
@@ -940,7 +941,7 @@ pub struct Artist {
 
 /// Contains the artwork path and ID.
 #[binrw]
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize)]
 #[brw(little)]
 pub struct Artwork {
     /// ID of this row.
@@ -951,7 +952,7 @@ pub struct Artwork {
 
 /// Contains numeric color ID
 #[binrw]
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize)]
 #[brw(little)]
 pub struct Color {
     /// Unknown field.
@@ -968,7 +969,7 @@ pub struct Color {
 
 /// Represents a musical genre.
 #[binrw]
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize)]
 #[brw(little)]
 pub struct Genre {
     /// ID of this row.
@@ -979,7 +980,7 @@ pub struct Genre {
 
 /// Represents a history playlist.
 #[binrw]
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize)]
 #[brw(little)]
 pub struct HistoryPlaylist {
     /// ID of this row.
@@ -990,7 +991,7 @@ pub struct HistoryPlaylist {
 
 /// Represents a history playlist.
 #[binrw]
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize)]
 #[brw(little)]
 pub struct HistoryEntry {
     /// ID of the track played at this position in the playlist.
@@ -1003,7 +1004,7 @@ pub struct HistoryEntry {
 
 /// Represents a musical key.
 #[binrw]
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize)]
 #[brw(little)]
 pub struct Key {
     /// ID of this row.
@@ -1016,7 +1017,7 @@ pub struct Key {
 
 /// Represents a record label.
 #[binrw]
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize)]
 #[brw(little)]
 pub struct Label {
     /// ID of this row.
@@ -1027,7 +1028,7 @@ pub struct Label {
 
 /// Represents a node in the playlist tree (either a folder or a playlist).
 #[binrw]
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize)]
 #[brw(little)]
 pub struct PlaylistTreeNode {
     /// ID of parent row of this row (which means that the parent is a folder).
@@ -1054,7 +1055,7 @@ impl PlaylistTreeNode {
 
 /// Represents a track entry in a playlist.
 #[binrw]
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize)]
 #[brw(little)]
 pub struct PlaylistEntry {
     /// Position within the playlist.
@@ -1068,7 +1069,7 @@ pub struct PlaylistEntry {
 /// Contains the kinds of Metadata Categories tracks can be browsed by
 /// on CDJs.
 #[binrw]
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize)]
 #[brw(little)]
 pub struct ColumnEntry {
     // Possibly the primary key, though I don't know if that would
@@ -1091,7 +1092,7 @@ pub struct ColumnEntry {
 #[binrw]
 #[brw(little)]
 #[brw(import(base: i64, offsets: &OffsetArray<22>, _args: ()))]
-#[derive(Debug, PartialEq, Clone, Eq)]
+#[derive(Debug, PartialEq, Clone, Eq, Serialize)]
 /// String fields stored via the offset table in Track rows
 pub struct TrackStrings {
     /// International Standard Recording Code (ISRC), in mangled format.
@@ -1205,7 +1206,7 @@ pub struct TrackStrings {
 
 /// Contains the album name, along with an ID of the corresponding artist.
 #[binrw]
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize)]
 #[brw(little)]
 pub struct Track {
     /// Unknown field, usually `24 00`.
@@ -1294,7 +1295,7 @@ pub struct Track {
 
 /// A table row contains the actual data.
 #[binrw]
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize)]
 #[brw(little)]
 #[br(import(page_type: PlainPageType))]
 // The large enum size is unfortunate, but since users of this library will probably use iterators
@@ -1372,7 +1373,7 @@ impl PlainRow {
 
 /// A table row contains the actual data.
 #[binrw]
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize)]
 #[brw(little)]
 #[br(import(page_type: PageType))]
 // The large enum size is unfortunate, but since users of this library will probably use iterators
