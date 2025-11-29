@@ -1289,6 +1289,7 @@ pub struct Track {
     /// Track tempo in centi-BPM (= 1/100 BPM).
     tempo: u32,
     /// Genre row ID for this track (non-zero if set).
+    #[serde(skip_serializing_if = "GenreId::is_zero")]  
     genre_id: GenreId,
     /// Album row ID for this track (non-zero if set).
     #[serde(skip_serializing_if = "AlbumId::is_zero")]
