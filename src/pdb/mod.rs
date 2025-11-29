@@ -882,14 +882,14 @@ pub struct Album {
     /// Unknown field.
     unknown2: u32,
     /// ID of the artist row associated with this row.
-    artist_id: ArtistId,
+    pub artist_id: ArtistId,
     /// ID of this row.
-    id: AlbumId,
+    pub id: AlbumId,
     /// Unknown field.
     unknown3: u32,
     /// The offsets and its data and the end of this row
     #[brw(args(20, subtype.get_offset_size(), ()))]
-    offsets: OffsetArrayContainer<TrailingName, 2>,
+    pub offsets: OffsetArrayContainer<TrailingName, 2>,
     /// Explicit padding, used to align rows in a page (manually)
     padding: ExplicitPadding,
 }
@@ -944,9 +944,9 @@ pub struct Artist {
 #[brw(little)]
 pub struct Artwork {
     /// ID of this row.
-    id: ArtworkId,
+    pub id: ArtworkId,
     /// Path to the album art file.
-    path: DeviceSQLString,
+    pub path: DeviceSQLString,
 }
 
 /// Contains numeric color ID
