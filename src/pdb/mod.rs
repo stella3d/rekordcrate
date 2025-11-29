@@ -856,6 +856,33 @@ pub struct PlaylistTreeNodeId(pub u32);
 #[brw(little)]
 pub struct HistoryPlaylistId(pub u32);
 
+macro_rules! impl_zero_check {
+    ($($name:ident),+ $(,)?) => {
+        $(
+            impl $name {
+                #[inline]
+                #[must_use]
+                /// Returns `true` if the data is all zero bits.
+                pub const fn is_zero(&self) -> bool {
+                    self.0 == 0
+                }
+            }
+        )+
+    };
+}
+
+impl_zero_check!(
+    TrackId,
+    ArtworkId,
+    AlbumId,
+    ArtistId,
+    GenreId,
+    KeyId,
+    LabelId,
+    PlaylistTreeNodeId,
+    HistoryPlaylistId,
+);
+
 #[binrw]
 #[brw(little)]
 #[brw(import(base: i64, offsets: &OffsetArray<2>, args: ()))]
@@ -1221,6 +1248,7 @@ pub struct Track {
     /// Sample Rate in Hz.
     sample_rate: u32,
     /// Composer of this track as artist row ID (non-zero if set).
+    #[serde(skip_serializing_if = "ArtistId::is_zero")]
     composer_id: ArtistId,
     /// File size in bytes.
     file_size: u32,
@@ -1233,14 +1261,19 @@ pub struct Track {
     /// Appears to be the same for all tracks in a given DB.
     unknown4: u16,
     /// Artwork row ID for the cover art (non-zero if set),
+    #[serde(skip_serializing_if = "ArtworkId::is_zero")]
     artwork_id: ArtworkId,
     /// Key row ID for the cover art (non-zero if set).
+    #[serde(skip_serializing_if = "KeyId::is_zero")]
     key_id: KeyId,
     /// Artist row ID of the original performer (non-zero if set).
+    #[serde(skip_serializing_if = "ArtistId::is_zero")]
     orig_artist_id: ArtistId,
     /// Label row ID of the original performer (non-zero if set).
+    #[serde(skip_serializing_if = "LabelId::is_zero")]
     label_id: LabelId,
     /// Artist row ID of the remixer (non-zero if set).
+    #[serde(skip_serializing_if = "ArtistId::is_zero")]
     remixer_id: ArtistId,
     /// Bitrate of the track.
     bitrate: u32,
@@ -1251,10 +1284,13 @@ pub struct Track {
     /// Genre row ID for this track (non-zero if set).
     genre_id: GenreId,
     /// Album row ID for this track (non-zero if set).
+    #[serde(skip_serializing_if = "AlbumId::is_zero")]
     album_id: AlbumId,
     /// Artist row ID for this track (non-zero if set).
+    #[serde(skip_serializing_if = "ArtistId::is_zero")]
     artist_id: ArtistId,
     /// Row ID of this track (non-zero if set).
+    #[serde(skip_serializing_if = "TrackId::is_zero")]
     id: TrackId,
     /// Disc number of this track (non-zero if set).
     disc_number: u16,
