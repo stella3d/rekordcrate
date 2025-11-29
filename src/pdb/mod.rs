@@ -1058,11 +1058,11 @@ impl PlaylistTreeNode {
 #[brw(little)]
 pub struct PlaylistEntry {
     /// Position within the playlist.
-    entry_index: u32,
+    pub entry_index: u32,
     /// ID of the track played at this position in the playlist.
-    track_id: TrackId,
+    pub track_id: TrackId,
     /// ID of the playlist.
-    playlist_id: PlaylistTreeNodeId,
+    pub playlist_id: PlaylistTreeNodeId,
 }
 
 /// Contains the kinds of Metadata Categories tracks can be browsed by
