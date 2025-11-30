@@ -30,7 +30,7 @@ pub mod util;
 pub mod xml;
 pub(crate) mod xor;
 
-use binrw::{BinRead};
+use binrw::BinRead;
 
 /// Reads all data rows from a PDB file and exposes them through an iterator.
 pub fn iter_pdb_rows(path: &PathBuf, typ: DatabaseType) -> Result<PdbRowIter> {
@@ -78,9 +78,8 @@ impl Iterator for PdbRowIter {
 
 use std::path::PathBuf;
 
-use crate::pdb::{DatabaseType, PageContent};
 use crate::pdb::Header;
 use crate::pdb::Row;
+use crate::pdb::{DatabaseType, PageContent};
 pub use crate::util::RekordcrateError as Error;
 pub use crate::util::RekordcrateResult as Result;
-

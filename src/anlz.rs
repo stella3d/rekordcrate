@@ -149,13 +149,35 @@ pub enum CueListType {
 
 /// Indicates if the cue is point or a loop.
 #[binrw]
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 #[brw(repr = u8)]
 pub enum CueType {
+    /// Cue type byte set to zero (INVALID).
+    Unknown = 0,
     /// Cue is a single point.
     Point = 1,
     /// Cue is a loop.
     Loop = 2,
+}
+
+impl CueType {
+    fn from_raw(value: u8) -> Self {
+        match value {
+            1 => CueType::Point,
+            2 => CueType::Loop,
+            _ => CueType::Unknown,
+        }
+    }
+}
+
+impl From<CueType> for u8 {
+    fn from(value: CueType) -> Self {
+        match value {
+            CueType::Unknown => 0,
+            CueType::Point => 1,
+            CueType::Loop => 2,
+        }
+    }
 }
 
 /// A memory or hot cue (or loop).
@@ -253,7 +275,7 @@ pub struct ExtendedCue {
     /// Color assigned to this cue.
     ///
     /// Only used by memory cues, hot cues use a different value (see below).
-    pub color: ColorIndex,
+    pub color: Option<ColorIndex>,
     /// Unknown field.
     unknown3: u8,
     /// Unknown field.
