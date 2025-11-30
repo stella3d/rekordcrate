@@ -1075,7 +1075,7 @@ pub struct ColumnEntry {
     // make sense as I don't think there are references to these
     // rows anywhere else. This could be a stable ID to identify
     // a category by in hardware (instead of by name).
-    id: u16,
+    pub id: u16,
     // Maybe a bitfield containing infos on sort order and which
     // columns are displayed.
     unknown0: u16,
