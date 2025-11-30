@@ -132,7 +132,7 @@ fn list_playlists(path: &PathBuf) -> rekordcrate::Result<()> {
 fn dump_anlz(path: &PathBuf) -> rekordcrate::Result<()> {
     let mut reader = std::fs::File::open(path)?;
     let anlz = ANLZ::read(&mut reader)?;
-    println!("{:#?}", anlz);
+    println!("\nanalysis:\n{:#?}", anlz);
 
     Ok(())
 }
