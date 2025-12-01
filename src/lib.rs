@@ -37,6 +37,8 @@ pub fn iter_pdb_rows(path: &PathBuf, typ: DatabaseType) -> Result<PdbRowIter> {
     let mut reader = std::fs::File::open(path)?;
     let header = Header::read_args(&mut reader, (typ,))?;
 
+    println!("PDB header - # of tables: {}, page size: {}", header.tables.len(), header.page_size);
+
     let mut rows = Vec::new();
     for table in &header.tables {
         for page in header.read_pages(
