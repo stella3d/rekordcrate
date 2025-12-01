@@ -965,11 +965,11 @@ pub struct Color {
     /// Unknown field.
     unknown2: u8,
     /// Numeric color ID
-    color: ColorIndex,
+    pub color: ColorIndex,
     /// Unknown field.
     unknown3: u16,
     /// User-defined name of the color.
-    name: DeviceSQLString,
+    pub name: DeviceSQLString,
 }
 
 /// Represents a musical genre.
