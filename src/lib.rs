@@ -43,10 +43,10 @@ pub fn iter_pdb_rows(path: &PathBuf, typ: DatabaseType) -> Result<PdbRows> {
     let header = Header::read_args(&mut reader, (typ,))?;
 
     let tables_len = header.tables.len();
-    println!("PDB header - # of tables: {}, page size: {}", tables_len, header.page_size);
+    //println!("PDB header - # of tables: {}, page size: {}", tables_len, header.page_size);
 
-    // estimate capacity to reduce resize costs 
-    let mut rows = Vec::with_capacity(tables_len * 128); 
+    // estimate capacity to reduce resize costs - i measured slightly less than this avg per page
+    let mut rows = Vec::with_capacity(tables_len * 192); 
     for table in &header.tables {
         for page in header.read_pages(
             &mut reader,
@@ -61,9 +61,8 @@ pub fn iter_pdb_rows(path: &PathBuf, typ: DatabaseType) -> Result<PdbRows> {
         }
     }
 
-    println!("PDB read complete.");
-    let row_avg = rows.len() as f32 / tables_len as f32;
-    println!("total rows read: {}, rows per table average: {}", rows.len(), row_avg);
+    //let row_avg = rows.len() as f32 / tables_len as f32;
+    //println!("total rows read: {}, rows per table average: {}", rows.len(), row_avg);
 
     Ok(PdbRows { rows })
 }
