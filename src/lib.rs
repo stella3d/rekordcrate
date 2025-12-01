@@ -56,6 +56,7 @@ pub fn iter_pdb_rows(path: &PathBuf, typ: DatabaseType) -> Result<PdbRowIter> {
         }
     }
 
+    println!("PDB read complete.");
     let row_avg = rows.len() as f32 / tables_len as f32;
     println!("total rows read: {}, rows per table average: {}", rows.len(), row_avg);
 
