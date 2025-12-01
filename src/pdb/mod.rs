@@ -1026,9 +1026,9 @@ pub struct Key {
 #[brw(little)]
 pub struct Label {
     /// ID of this row.
-    id: LabelId,
+    pub id: LabelId,
     /// Name of the record label.
-    name: DeviceSQLString,
+    pub name: DeviceSQLString,
 }
 
 /// Represents a node in the playlist tree (either a folder or a playlist).
