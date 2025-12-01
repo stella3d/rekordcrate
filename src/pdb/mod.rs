@@ -680,6 +680,12 @@ impl RowGroup {
         &self.rows
     }
 
+    /// Consume this row group and return the owned rows it contained.
+    #[must_use]
+    pub fn into_rows(self) -> Vec<Row> {
+        self.rows
+    }
+
     /// Add a row to this rowgroup
     pub fn add_row(&mut self, row: Row) -> Result<(), PdbError> {
         if self.rows.len() >= Self::MAX_ROW_COUNT {

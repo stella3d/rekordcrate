@@ -31,9 +31,14 @@ pub mod xml;
 pub(crate) mod xor;
 
 use binrw::BinRead;
+use std::{path::PathBuf, slice};
 
-/// Reads all data rows from a PDB file and exposes them through an iterator.
-pub fn iter_pdb_rows(path: &PathBuf, typ: DatabaseType) -> Result<PdbRowIter> {
+use crate::pdb::{DatabaseType, Header, PageContent, Row};
+pub use crate::util::RekordcrateError as Error;
+pub use crate::util::RekordcrateResult as Result;
+
+/// Reads all data rows from a PDB file and returns an owned collection for borrowed iteration.
+pub fn iter_pdb_rows(path: &PathBuf, typ: DatabaseType) -> Result<PdbRows> {
     let mut reader = std::fs::File::open(path)?;
     let header = Header::read_args(&mut reader, (typ,))?;
 
@@ -46,40 +51,80 @@ pub fn iter_pdb_rows(path: &PathBuf, typ: DatabaseType) -> Result<PdbRowIter> {
         )? {
             if let PageContent::Data(data_content) = page.content {
                 for row_group in data_content.row_groups {
-                    rows.extend(row_group.present_rows().iter().cloned());
+                    rows.extend(row_group.into_rows());
                 }
             }
         }
     }
 
-    Ok(PdbRowIter { rows, cursor: 0 })
+    Ok(PdbRows { rows })
+}
+
+/// Owned collection of rows extracted from a PDB file.
+#[derive(Debug, Default)]
+pub struct PdbRows {
+    rows: Vec<Row>,
+}
+
+impl PdbRows {
+    /// Returns `true` if no rows were extracted.
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.rows.is_empty()
+    }
+
+    /// Returns the number of extracted rows.
+    #[must_use]
+    pub fn len(&self) -> usize {
+        self.rows.len()
+    }
+
+    /// Iterates over the extracted rows by reference.
+    #[must_use]
+    pub fn iter(&self) -> PdbRowIter<'_> {
+        PdbRowIter {
+            inner: self.rows.iter(),
+        }
+    }
+
+    /// Consumes the container and returns the owned rows.
+    #[must_use]
+    pub fn into_rows(self) -> Vec<Row> {
+        self.rows
+    }
+}
+
+impl<'a> IntoIterator for &'a PdbRows {
+    type Item = &'a Row;
+    type IntoIter = PdbRowIter<'a>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
 }
 
 /// Iterator over raw rows extracted from a PDB file.
 #[derive(Debug)]
-pub struct PdbRowIter {
-    rows: Vec<Row>,
-    cursor: usize,
+pub struct PdbRowIter<'a> {
+    inner: slice::Iter<'a, Row>,
 }
 
-impl Iterator for PdbRowIter {
-    type Item = Row;
+impl<'a> Iterator for PdbRowIter<'a> {
+    type Item = &'a Row;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.cursor < self.rows.len() {
-            let row = self.rows[self.cursor].clone();
-            self.cursor += 1;
-            Some(row)
-        } else {
-            None
-        }
+        self.inner.next()
     }
 }
 
-use std::path::PathBuf;
+impl<'a> ExactSizeIterator for PdbRowIter<'a> {
+    fn len(&self) -> usize {
+        self.inner.len()
+    }
+}
 
-use crate::pdb::Header;
-use crate::pdb::Row;
-use crate::pdb::{DatabaseType, PageContent};
-pub use crate::util::RekordcrateError as Error;
-pub use crate::util::RekordcrateResult as Result;
+impl<'a> DoubleEndedIterator for PdbRowIter<'a> {
+    fn next_back(&mut self) -> Option<Self::Item> {
+        self.inner.next_back()
+    }
+}
