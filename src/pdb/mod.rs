@@ -786,7 +786,7 @@ pub struct Album {
     /// ID of the artist row associated with this row.
     artist_id: ArtistId,
     /// ID of this row.
-    id: AlbumId,
+    pub id: AlbumId,
     /// Unknown field.
     unknown3: u32,
     /// The offsets and its data and the end of this row
@@ -817,9 +817,9 @@ pub struct Artist {
 #[brw(little)]
 pub struct Artwork {
     /// ID of this row.
-    id: ArtworkId,
+    pub id: ArtworkId,
     /// Path to the album art file.
-    path: DeviceSQLString,
+    pub path: DeviceSQLString,
 }
 
 /// Contains numeric color ID
@@ -880,7 +880,7 @@ pub struct HistoryEntry {
 #[brw(little)]
 pub struct Key {
     /// ID of this row.
-    id: KeyId,
+    pub id: KeyId,
     /// Apparently a second copy of the row ID.
     id2: u32,
     /// Name of the key.
@@ -1104,7 +1104,7 @@ pub struct Track {
     /// Appears to be the same for all tracks in a given DB.
     unknown4: u16,
     /// Artwork row ID for the cover art (non-zero if set),
-    artwork_id: ArtworkId,
+    pub artwork_id: ArtworkId,
     /// Key row ID for the cover art (non-zero if set).
     key_id: KeyId,
     /// Artist row ID of the original performer (non-zero if set).
@@ -1118,7 +1118,7 @@ pub struct Track {
     /// Track number of the track.
     track_number: u32,
     /// Track tempo in centi-BPM (= 1/100 BPM).
-    tempo: u32,
+    pub tempo: u32,
     /// Genre row ID for this track (non-zero if set).
     genre_id: GenreId,
     /// Album row ID for this track (non-zero if set).
