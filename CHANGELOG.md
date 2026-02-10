@@ -33,12 +33,15 @@ All notable changes to this project will be documented in this file.
 - pdb: Address feedback by @Swiftb0y
 - pdb: Only allow PageIndex values less than 0x03FF_FFFF
 - Fix various compiler or clippy warnings with Rust 1.90
+- device: Load_settings, don't fail if settings files are missing
+- Build status badge/shield
 
 ### Documentation
 
 - pdb: Add doc comments for struct fields in ext.rs
 - Link to upstream Tag row docs in docs
 - pdb: Enhance documentation for some index page fields
+- Fix comment for Track enum variant
 
 ### Features
 
@@ -51,6 +54,12 @@ All notable changes to this project will be documented in this file.
 - Convert dump-ext-pdb into flag instead with some guessing magic
 - pdb: Initial index page implementation
 - pdb: Add methods to create new and empty `IndexEntry` instances
+- pdb: Parse MenuItem rows (table 17)
+- Also print playlist content (artist - title) for list-playlists
+- device: Add preliminary high-level API for reading settings
+- cli: Add command to list settings from device export
+- device: Add methods to read playlist entries and tracks
+- cli: Add command to export playlists as M3U
 
 ### Refactor
 
@@ -75,6 +84,13 @@ All notable changes to this project will be documented in this file.
 - pdb: Remove unused methods from `Page` impl
 - pdb: Address NITs from @Holzhaus and make clippy happy
 - pdb: Remove unneeded explicit padding from tag rows
+- Optimize impl fmt::Display for DeviceSQLString
+- pdb: Rename MenuItem to Menu and add MenuVisibility enum
+- device: Add support for PDB and move code from `main`
+- device: Expose Pdb in DeviceExport and remove wrappers
+- device: Return track references instead of clones
+- cli: Use Pdb abstraction for playlist listing
+- Implement Display for Settings to reduce some duplication
 
 ### Testing
 
@@ -93,6 +109,7 @@ All notable changes to this project will be documented in this file.
 - pdb: Add tag and track_tag page tests
 - pdb: Add history playlists and entries page tests
 - pdb: Add `index_page` unit test
+- pdb: Add tests for Menu row and page
 
 ## [0.3.0] - 2025-01-23
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2025 Jan Holthuis <jan.holthuis@rub.de>
+// Copyright (c) 2026 Jan Holthuis <jan.holthuis@rub.de>
 //
 // This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy
 // of the MPL was not distributed with this file, You can obtain one at
@@ -31,8 +31,7 @@ fn assert_pdb_row_count(page_type: PlainPageType, expected_row_count: usize) {
     let actual_row_count: usize = pages
         .into_iter()
         .filter_map(|page| page.content.into_data())
-        .flat_map(|data_content| data_content.row_groups.into_iter())
-        .map(|row_group| row_group.present_rows().len())
+        .map(|data_content| data_content.rows.len())
         .sum();
     assert_eq!(
         actual_row_count, expected_row_count,
@@ -93,7 +92,7 @@ fn test_pdb_row_count_playlisttree() {
 
 #[test]
 fn test_pdb_row_count_playlistentries() {
-    assert_pdb_row_count(PlainPageType::PlaylistEntries, 6637);
+    assert_pdb_row_count(PlainPageType::PlaylistEntries, 7440);
 }
 
 #[test]

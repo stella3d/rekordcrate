@@ -1,4 +1,4 @@
-// Copyright (c) 2025 Nikolaus Einhauser <nikolaus.einhauser@web.de>
+// Copyright (c) 2026 Nikolaus Einhauser <nikolaus.einhauser@web.de>
 //
 // This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy
 // of the MPL was not distributed with this file, You can obtain one at
@@ -41,18 +41,18 @@ pub struct ParentId(
 
 #[binrw]
 #[brw(little)]
-#[brw(import(base: i64, offsets: &OffsetArray<3>, args: ()))]
+#[brw(import(base: i64, offsets: &OffsetArray<2>, args: ()))]
 #[derive(Debug, PartialEq, Clone, Eq)]
 /// The strings associated with a tag or category.
 pub struct TagOrCategoryStrings {
     #[brw(args(base, args))]
-    #[br(parse_with = offsets.read_offset(1))]
-    #[bw(write_with = offsets.write_offset(1))]
+    #[br(parse_with = offsets.read_offset(0))]
+    #[bw(write_with = offsets.write_offset(0))]
     /// The name of the tag or category.
     pub name: DeviceSQLString,
     #[brw(args(base, args))]
-    #[br(parse_with = offsets.read_offset(2))]
-    #[bw(write_with = offsets.write_offset(2))]
+    #[br(parse_with = offsets.read_offset(1))]
+    #[bw(write_with = offsets.write_offset(1))]
     /// String with unknown purpose, often empty.
     pub unknown: DeviceSQLString,
 }
@@ -90,7 +90,7 @@ pub struct TagOrCategory {
     // Padded at the end by 11 bytes as observed
     #[brw(args(0x1C, subtype.get_offset_size(), ()), pad_after = 11)]
     /// The strings associated with this tag or category.
-    pub offsets: OffsetArrayContainer<TagOrCategoryStrings, 3>,
+    pub offsets: OffsetArrayContainer<TagOrCategoryStrings, 2>,
 }
 
 // https://djl-analysis.deepsymmetry.org/rekordbox-export-analysis/exports.html#tag-track-rows
@@ -134,20 +134,8 @@ pub enum ExtPageType {
 pub enum ExtRow {
     /// Contains the album name, along with an ID of the corresponding artist.
     #[br(pre_assert(page_type == ExtPageType::Tag))]
-    Tag(TagOrCategory),
+    Tag(#[bw(pad_after = 0, align_after = 4)] TagOrCategory),
     /// Contains the artist name and ID.
     #[br(pre_assert(page_type == ExtPageType::TrackTag))]
-    TrackTag(TrackTag),
-}
-
-impl ExtRow {
-    #[must_use]
-    pub(crate) const fn align_by(&self, offset: u64) -> u64 {
-        use crate::util::align_by;
-        use std::mem::align_of_val;
-        match self {
-            ExtRow::Tag(_) => align_by(4, offset),
-            ExtRow::TrackTag(r) => align_by(align_of_val(r) as u64, offset),
-        }
-    }
+    TrackTag(#[bw(pad_after = 0, align_after = 4)] TrackTag),
 }
