@@ -29,8 +29,10 @@ use offset_array::OffsetArrayContainer;
 #[cfg(test)]
 mod test;
 
+use core::slice;
 use std::collections::BTreeMap;
 use std::fmt;
+use std::path::PathBuf;
 
 use crate::pdb::ext::{ExtPageType, ExtRow};
 use crate::pdb::offset_array::{OffsetArray, OffsetSize};
@@ -944,10 +946,10 @@ pub struct PlaylistEntry {
 #[derive(Debug, PartialEq, Eq, Clone)]
 #[brw(little)]
 pub struct ColumnEntry {
-    // Possibly the primary key, though I don't know if that would
-    // make sense as I don't think there are references to these
-    // rows anywhere else. This could be a stable ID to identify
-    // a category by in hardware (instead of by name).
+    /// Possibly the primary key, though I don't know if that would
+    /// make sense as I don't think there are references to these
+    /// rows anywhere else. This could be a stable ID to identify
+    /// a category by in hardware (instead of by name).
     pub id: u16,
     // Maybe a bitfield containing infos on sort order and which
     // columns are displayed.
@@ -1295,4 +1297,101 @@ pub enum Row {
     /// The row format (and also its size) is unknown, which means it can't be parsed.
     #[br(pre_assert(matches!(page_type, PageType::Plain(PlainPageType::History) | PageType::Unknown(_))))]
     Unknown,
+}
+
+/// Reads all data rows from a PDB file and returns an owned collection for borrowed iteration.
+pub fn iter_pdb_rows(path: &PathBuf, typ: DatabaseType) -> crate::util::RekordcrateResult<PdbRows> {
+    let mut reader = std::fs::File::open(path)?;
+    let header = Header::read_args(&mut reader, (typ,))?;
+
+    let tables_len = header.tables.len();
+    //println!("PDB header - # of tables: {}, page size: {}", tables_len, header.page_size);
+
+    // estimate capacity to reduce resize costs - i measured slightly less than this avg per page
+    let mut rows = Vec::with_capacity(tables_len * 192); 
+    for table in &header.tables {
+        for page in header.read_pages(
+            &mut reader,
+            binrw::Endian::NATIVE,
+            (&table.first_page, &table.last_page, typ),
+        )? {
+            if let PageContent::Data(data_content) = page.content {
+                rows.extend(data_content.rows.values().cloned());
+            }
+        }
+    }
+
+    //let row_avg = rows.len() as f32 / tables_len as f32;
+    //println!("total rows read: {}, rows per table average: {}", rows.len(), row_avg);
+
+    Ok(PdbRows { rows })
+}
+
+/// Owned collection of rows extracted from a PDB file.
+#[derive(Debug, Default)]
+pub struct PdbRows {
+    rows: Vec<Row>,
+}
+
+impl PdbRows {
+    /// Returns `true` if no rows were extracted.
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.rows.is_empty()
+    }
+
+    /// Returns the number of extracted rows.
+    #[must_use]
+    pub fn len(&self) -> usize {
+        self.rows.len()
+    }
+
+    /// Iterates over the extracted rows by reference.
+    #[must_use]
+    pub fn iter(&self) -> PdbRowIter<'_> {
+        PdbRowIter {
+            inner: self.rows.iter(),
+        }
+    }
+
+    /// Consumes the container and returns the owned rows.
+    #[must_use]
+    pub fn into_rows(self) -> Vec<Row> {
+        self.rows
+    }
+}
+
+impl<'a> IntoIterator for &'a PdbRows {
+    type Item = &'a Row;
+    type IntoIter = PdbRowIter<'a>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+
+/// Iterator over raw rows extracted from a PDB file.
+#[derive(Debug)]
+pub struct PdbRowIter<'a> {
+    inner: slice::Iter<'a, Row>,
+}
+
+impl<'a> Iterator for PdbRowIter<'a> {
+    type Item = &'a Row;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.inner.next()
+    }
+}
+
+impl<'a> ExactSizeIterator for PdbRowIter<'a> {
+    fn len(&self) -> usize {
+        self.inner.len()
+    }
+}
+
+impl<'a> DoubleEndedIterator for PdbRowIter<'a> {
+    fn next_back(&mut self) -> Option<Self::Item> {
+        self.inner.next_back()
+    }
 }
