@@ -1043,7 +1043,7 @@ pub struct TrackStrings {
     #[brw(args(base, ()))]
     #[br(parse_with = offsets.read_offset(14))]
     #[bw(write_with = offsets.write_offset(14))]
-    analyze_path: DeviceSQLString,
+    pub analyze_path: DeviceSQLString,
     /// Date when the track analysis was performed (YYYY-MM-DD).
     #[brw(args(base, ()))]
     #[br(parse_with = offsets.read_offset(15))]
