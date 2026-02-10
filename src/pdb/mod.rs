@@ -784,14 +784,14 @@ pub struct Album {
     /// Unknown field.
     unknown2: u32,
     /// ID of the artist row associated with this row.
-    artist_id: ArtistId,
+    pub artist_id: ArtistId,
     /// ID of this row.
     pub id: AlbumId,
     /// Unknown field.
     unknown3: u32,
     /// The offsets and its data and the end of this row
     #[brw(args(20, subtype.get_offset_size(), ()))]
-    offsets: OffsetArrayContainer<TrailingName, 1>,
+    pub offsets: OffsetArrayContainer<TrailingName, 1>,
 }
 
 /// Contains the artist name and ID.
@@ -948,7 +948,7 @@ pub struct ColumnEntry {
     // make sense as I don't think there are references to these
     // rows anywhere else. This could be a stable ID to identify
     // a category by in hardware (instead of by name).
-    id: u16,
+    pub id: u16,
     // Maybe a bitfield containing infos on sort order and which
     // columns are displayed.
     unknown0: u16,
@@ -1106,7 +1106,7 @@ pub struct Track {
     /// Artwork row ID for the cover art (non-zero if set),
     pub artwork_id: ArtworkId,
     /// Key row ID for the cover art (non-zero if set).
-    key_id: KeyId,
+    pub key_id: KeyId,
     /// Artist row ID of the original performer (non-zero if set).
     orig_artist_id: ArtistId,
     /// Label row ID of the original performer (non-zero if set).
